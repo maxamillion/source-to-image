@@ -5,13 +5,17 @@
 
 %global gopath      %{_datadir}/gocode
 
+%global import_path github.com/openshift/source-to-image
+
+%global ldflags PLACEHOLDER_REPLACED_BY_TITO
+
 # docker_version is the version of docker requires by packages
 %global docker_version 1.6
 
 Name:           source-to-image
 # Version is not kept up to date and is intended to be set by tito custom
 # builders provided in the .tito/lib directory of this project
-Version:        0.0.2
+Version:        0.0.3
 Release:        1%{?dist}
 Summary:        source-to-image (s2i) a tool for building reproducible Docker images.
 License:        ASL 2.0
@@ -45,33 +49,55 @@ built artifacts, etc.
 %setup -q -n %{name}-%{version}
 
 %build
-make
+
+# Gaming the GOPATH because bundled libs in golang
+mkdir _build
+pushd _build
+    mkdir -p src/github.com/openshift
+    ln -s $(dirs +1 -l) src/%{import_path}
+popd
+
+mkdir _thirdpartylibs
+pushd _thirdpartylibs
+    ln -s \
+        $(dirs +1 -l)/Godeps/_workspace/src/ \
+        src
+popd
+
+export GOPATH=$(pwd)/_build:$(pwd)/_thirdpartylibs:%{buildroot}%{gopath}:%{gopath}
+
+for cmd in s2i
+do
+    go install -ldflags "%{ldflags}" %{import_path}/cmd/${cmd}
+done
 
 %install
 
-source <(go env)
-
-install -d %{buildroot}%{_bindir}
+install -d -m 755 %{buildroot}%{_bindir}
 # Install components
 for bin in s2i
 do
   echo "+++ INSTALLING ${bin}"
-  install -p -m 755 _output/local/bin/linux/$GOARCH/${bin} %{buildroot}%{_bindir}/${bin}
+  install -p -m 755 _build/bin/${bin} %{buildroot}%{_bindir}/${bin}
 done
 
-install -d %{_sysconfdir}/bash_competion.d
-install -p -m 644 contrib/bash/s2i %{_sysconfdir}/bash_completion.d/s2i
+install -d -m 755 %{buildroot}%{_sysconfdir}/bash_completion.d
+install -p -m 644 contrib/bash/s2i %{buildroot}%{_sysconfdir}/bash_completion.d/s2i
 
 %check
-make check
+go test
 
 %files
-%doc README.md
+%doc README.md CONTRIBUTING.md AUTHORS
 %license LICENSE
 %{_bindir}/s2i
 %{_sysconfdir}/bash_completion.d/s2i
 
 %changelog
+* Wed May 04 2016 Adam Miller <maxamillion@fedoraproject.org> 0.0.3-1
+- Automatic commit of package [source-to-image] release [0.0.2-1].
+  (maxamillion@fedoraproject.org)
+
 * Wed May 04 2016 Adam Miller <maxamillion@fedoraproject.org> 0.0.2-1
 - new package built with tito
 
