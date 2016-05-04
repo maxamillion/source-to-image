@@ -41,6 +41,20 @@ class S2IBuilder(Builder):
                 self.tgz_filename,
             )
 
+            # Custom s2i stuff follows, everything above is the standard
+            # builder
+
+            # set ldflags in spec
+            cmd = '. ./hack/common.sh ; echo $(sti::build::ldflags)'
+            ldflags = run_command("bash -c '{0}'".format(cmd))
+            print("LDFLAGS::{0}".format(ldflags))
+            update_ldflags = \
+                    "sed -i 's|^%global ldflags .*$|%global ldflags {0}|' {1}".format(
+                        ' '.join([ldflag.strip() for ldflag in ldflags.split()]),
+                        self.spec_file
+                    )
+            print(run_command(update_ldflags))
+
             # Add bundled deps for Fedora Guidelines as per:
             # https://fedoraproject.org/wiki/Packaging:Guidelines#Bundling_and_Duplication_of_system_libraries
             provides_list = []
