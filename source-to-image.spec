@@ -9,6 +9,8 @@
 
 %global ldflags PLACEHOLDER_REPLACED_BY_TITO
 
+%global commit c99ef8b29e94bdaf62d5d5aefa74d12af6d37e3
+
 # docker_version is the version of docker requires by packages
 %global docker_version 1.6
 

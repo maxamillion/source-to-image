@@ -44,13 +44,6 @@ class S2ITagger(VersionTagger):
 
     %global commit 460abe2a3abe0fa22ac96c551fe71c0fc36f7475
 
-    ** RPM specfile global ldflags is updated with os::build::ldflags as generated
-    by importing hack/common.sh this absolutely depends on the non standard
-    version tagging outlined above. This is 100% openshift specific
-
-    Requires that your ldflags global is written on one single line like this:
-    %global ldflags -X foo -X bar
-
     NOTE: Does not work with --use-version as tito does not provide a way to
     override the forced version tagger, see
     https://github.com/dgoodwin/tito/pull/163
@@ -77,18 +70,6 @@ class S2ITagger(VersionTagger):
         output = run_command(update_commit)
 
         cmd = '. ./hack/common.sh ; echo $(sti::build::ldflags)'
-        ldflags = run_command('bash -c \'{0}\''.format(cmd))
-        # hack/common.sh will tell us that the tree is dirty because tito has
-        # already mucked with things, but lets not consider the tree to be
-        # dirty
-        ldflags = ldflags.replace('-dirty', '')
-        update_ldflags = \
-            "sed -i 's|^%global ldflags .*$|%global ldflags {0}|' {1}".format(
-                ldflags,
-                self.spec_file
-            )
-        # FIXME - this output is never used
-        output = run_command(update_ldflags)
 
         self._check_tag_does_not_exist(self._get_new_tag(new_version))
         self._update_changelog(new_version)
