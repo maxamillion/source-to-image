@@ -1,6 +1,7 @@
 [buildconfig]
 builder = s2i.builder.S2IBuilder
-tagger = tito.tagger.VersionTagger
+tagger = s2i.tagger.S2ITagger
+forceversiontagger = s2i.tagger.S2IForceVersionTagger
 changelog_do_not_remove_cherrypick = 0
 changelog_format = %s (%ae)
 lib_dir = .tito/lib
