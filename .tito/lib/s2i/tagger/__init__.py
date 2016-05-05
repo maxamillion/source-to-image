@@ -108,7 +108,6 @@ class S2ITagger(VersionTagger):
         git_root = find_git_root()
         rel_eng_dir = os.path.join(git_root, tito_config_dir())
         file_path = "{0}/packages/{1}".format(rel_eng_dir, package_name)
-        debug("Getting latest package info from: {0}".format(file_path))
         if not os.path.exists(file_path):
             return None
 
@@ -123,7 +122,6 @@ class S2ITagger(VersionTagger):
         Create a new changelog entry in the spec, with line items from git
         """
         if self._no_auto_changelog:
-            debug("Skipping changelog generation.")
             return
 
         in_f = open(self.spec_file, 'r')
